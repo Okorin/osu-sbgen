@@ -9,8 +9,8 @@ All classes can be instantiated manually, but currently the following structure 
   - Sprites and Animation containers, only collect Commands and decide which to render upon breaking that logic down
 - Command
   - Command containers, can be modified / instantiated with their in osu! known syntax - can be managed as objects after that and all heavily rely on the root node's constructor
-  - apart from L and T, these are stupid commands -_-
-- Command.Builder
+  - apart from L and T, these are stupid commands
+- Command.Factory
   - Factory class to mass produce commands with the same or similar settings
   - this class is aware of the song's timing for now and helps building templates for commands that you use often
  
