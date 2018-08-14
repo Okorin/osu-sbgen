@@ -1,16 +1,24 @@
+from Storyboard import Storyboard
 from Command import Command
 from random import randint
 
 
 class Effect:
-    def __init__(self, timing_points, start_time, end_time, *args):
-        self.timing_points = timing_points
+
+    def __init__(self, command_factory, start_time, end_time):
+        self.command_factory = command_factory
         self.start_time = Command.milliseconds(start_time)
         self.end_time = Command.milliseconds(end_time)
         self.sprites = list()
 
+    def apply(self):
+        pass
+
     def get_sprites(self):
         return self.sprites
+
+    def append(self, sprite):
+        self.sprites.append(sprite)
 
     @classmethod
     def random_playfield_point(cls):

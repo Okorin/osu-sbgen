@@ -89,7 +89,7 @@ class Storyboard:
 
         return output
 
-    def new_sprite(self, path, layer=Constants.la['bg'], origin=Constants.o['cc'], x=320, y=240, use_folder=False):
+    def new_sprite(self, path, layer=Constants.la['bg'], origin=Constants.o['cc'], x=320, y=240, use_folder=True):
         """
         instantiates a new sprite
         :param path: filepath to the sprite relative from the SB folder path
@@ -109,7 +109,7 @@ class Storyboard:
         return sprite
 
     def new_animation(self, path, layer=Constants.la['bg'], origin=Constants.o['cc'], frame_count=2, frame_delay=500,
-                      loop_type="LoopForever", x=320, y=240, use_folder=False):
+                      loop_type="LoopForever", x=320, y=240, use_folder=True):
         """
         instantiates a new sprite
         :param path: filepath to the sprite relative from the SB folder path
@@ -138,39 +138,12 @@ class Storyboard:
         """
         return Command.Factory(self.timing_points)
 
-    def to_ms(self, reference_timestamp, duration):
-        # init
-        relevant_timing_point = dict()
-
-        # assure that the reference timestamp is formatted to be an int
-        ref_timestamp = Command.Command.milliseconds(reference_timestamp)
-
-        # split the duration fraction
-        dur = duration.split('/')
-
-        # nothing makes sense if you never gave this function a fraction
-        if len(dur) == 2:
-
-            # loop through timing points
-            for timing_point, content in self.timing_points.items():
-                if content['offset'] <= ref_timestamp:
-                    relevant_timing_point = content
-                    break
-
-            # pretend reference is initial and just refer to the
-            # bpm settings of the last timing point if nothing was found
-            if relevant_timing_point == {}:
-                relevant_timing_point = self.timing_points[0]
-
-            # e.g. 400 ms per beat * 1 / 2 = half a beat if 1 beat is 400 ms
-            return int(round(relevant_timing_point['ms'] * float(dur[0]) / float(dur[1])))
-
     def to_osb(self):
         """
         renders each sprite in chunks to an .osb file
         """
         with open(self.song_folder + self.osb_file_name, 'w', encoding='utf8') as file:
-
+            file.write("[Events]\n")
             # render all effects
             for effect in self.effects:
                 spr = effect.get_sprites()
@@ -181,6 +154,6 @@ class Storyboard:
             for sprite in self.sprites:
                 file.write(sprite.render())
 
-    def new_effect(self, cls, *args):
-        return cls(self.timing_points, *args)
+    def append_effect(self, effect):
+        self.effects.append(effect)
 
