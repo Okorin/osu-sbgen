@@ -155,5 +155,6 @@ class Storyboard:
                 file.write(sprite.render())
 
     def append_effect(self, effect):
+        effect.apply()
         self.effects.append(effect)
 
