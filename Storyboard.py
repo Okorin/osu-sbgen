@@ -18,6 +18,9 @@ class Storyboard:
         self.sprites = list()
         self.current_sprite = None
 
+        # effects
+        self.effects = list()
+
         # all timing points of the difficulty
         self.timing_points = dict()
 
@@ -39,7 +42,7 @@ class Storyboard:
         ver = str()
 
         # get the timing points from an .osu in the folder
-        with open(self.song_folder + timing_point_file, 'r') as file:
+        with open(self.song_folder + timing_point_file, 'r', encoding="utf8") as file:
             for line in file:
                 if 'Version:' in line:  # difficulty name
                     ver += line.strip('Version:')
@@ -73,12 +76,20 @@ class Storyboard:
         :return: the whole output the SB knows as a string
         """
         output = str()
+
+        # render all effects
+        for effect in self.effects:
+            spr = effect.get_sprites()
+            for sprite in spr:
+                output += sprite.render()
+
+        # all sprites
         for sprite in self.sprites:
             output += sprite.render()
 
         return output
 
-    def new_sprite(self, path, layer=Constants.la['bg'], origin=Constants.o['cc'], x=320, y=240):
+    def new_sprite(self, path, layer=Constants.la['bg'], origin=Constants.o['cc'], x=320, y=240, use_folder=False):
         """
         instantiates a new sprite
         :param path: filepath to the sprite relative from the SB folder path
@@ -86,15 +97,19 @@ class Storyboard:
         :param origin: where the 'center' point of the sprite is
         :param x: default coordinate x
         :param y: default coordinate y
+        :param use_folder: determines whether or not to use the SB folder
         :return: sprite instance
         """
-        sprite = Object.Sprite(self.sb_folder + path, layer, origin, x, y)
+        if use_folder:
+            sprite = Object.Sprite(self.sb_folder + path, layer, origin, x, y)
+        else:
+            sprite = Object.Sprite(path, layer, origin, x, y)
         self.sprites.append(sprite)
         self.current_sprite = sprite
         return sprite
 
     def new_animation(self, path, layer=Constants.la['bg'], origin=Constants.o['cc'], frame_count=2, frame_delay=500,
-                      loop_type="LoopForever", x=320, y=240):
+                      loop_type="LoopForever", x=320, y=240, use_folder=False):
         """
         instantiates a new sprite
         :param path: filepath to the sprite relative from the SB folder path
@@ -105,11 +120,15 @@ class Storyboard:
         :param loop_type:  loop forever or just once?
         :param x: default coordinate x
         :param y: default coordinate y
+        :param use_folder: determine whether or not to use the SB folder known by this class
         :return: animation instance
         """
-        animation = Object.Animation(self.sb_folder + path, layer, origin, frame_count, frame_delay, loop_type, x, y)
+        if use_folder:
+            animation = Object.Animation(self.sb_folder + path, layer, origin, frame_count, frame_delay, loop_type, x, y)
+        else:
+            animation = Object.Animation(path, layer, origin, frame_count, frame_delay, loop_type, x, y)
         self.sprites.append(animation)
-        self.current_sprite
+        self.current_sprite = animation
         return animation
 
     def new_command_factory(self):
@@ -119,29 +138,49 @@ class Storyboard:
         """
         return Command.Factory(self.timing_points)
 
+    def to_ms(self, reference_timestamp, duration):
+        # init
+        relevant_timing_point = dict()
+
+        # assure that the reference timestamp is formatted to be an int
+        ref_timestamp = Command.Command.milliseconds(reference_timestamp)
+
+        # split the duration fraction
+        dur = duration.split('/')
+
+        # nothing makes sense if you never gave this function a fraction
+        if len(dur) == 2:
+
+            # loop through timing points
+            for timing_point, content in self.timing_points.items():
+                if content['offset'] <= ref_timestamp:
+                    relevant_timing_point = content
+                    break
+
+            # pretend reference is initial and just refer to the
+            # bpm settings of the last timing point if nothing was found
+            if relevant_timing_point == {}:
+                relevant_timing_point = self.timing_points[0]
+
+            # e.g. 400 ms per beat * 1 / 2 = half a beat if 1 beat is 400 ms
+            return int(round(relevant_timing_point['ms'] * float(dur[0]) / float(dur[1])))
+
     def to_osb(self):
         """
         renders each sprite in chunks to an .osb file
         """
-        with open(self.song_folder + self.osb_file_name, 'w') as file:
+        with open(self.song_folder + self.osb_file_name, 'w', encoding='utf8') as file:
+
+            # render all effects
+            for effect in self.effects:
+                spr = effect.get_sprites()
+                for sprite in spr:
+                    file.write(sprite.render())
+
+            # render all sprites
             for sprite in self.sprites:
                 file.write(sprite.render())
 
+    def new_effect(self, cls, *args):
+        return cls(self.timing_points, *args)
 
-'''
-Example usage:
-sb = Storyboard("G:\osu!\Songs\\4_Elements_-_I_Want_You_To_Hold_Me_Nightcore_Mix",
-                "4 Elements - I Want You To Hold Me (Nightcore Mix) (Okoratu) [Insane].osu")
-
-factory = sb.new_command_factory()
-print(factory.type("M")
-      .start_coord((300, 200))
-      .end_coord((320, 240))
-      .start("00:13:281 - ")
-      .duration("2/1")
-      .easing(1)
-      .build().render())
-print(factory.start("00:14:690 - ").build().render())
-print(factory.type("MX").build().render())
-print(factory.type("MY").build().render())
-'''

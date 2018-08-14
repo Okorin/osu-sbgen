@@ -391,9 +391,12 @@ class Factory:
         end_params = self.tupE          # tuple with end values
         subclasses = Command.get_subclasses_as_dict()
 
-        if end_params is None and start_params is not None: end_params = start_params
-        if start is None: start = 0
-        if easing is None: easing = 0
+        if end_params is None and start_params is not None:
+            end_params = start_params
+        if start is None:
+            start = 0
+        if easing is None:
+            easing = 0
 
         # type has to be set or else the builder doesnt know what the actual arguments mean
         if t == "F" or t == "MX" or t == "S" or t == "R":  # subclasses with 2 params take the first tuple entry
@@ -407,10 +410,14 @@ class Factory:
             param_s = 0
             param_e = 0
             if start_params is not None and end_params is not None:
-                if len(start_params) == 1: param_s = start_params[0]
-                elif len(start_params) == 2: param_s = start_params[1]
-                if len(end_params) == 1: param_e = end_params[0]
-                elif len(end_params) == 2: param_e = end_params[1]
+                if len(start_params) == 1:
+                    param_s = start_params[0]
+                elif len(start_params) == 2:
+                    param_s = start_params[1]
+                if len(end_params) == 1:
+                    param_e = end_params[0]
+                elif len(end_params) == 2:
+                    param_e = end_params[1]
                 return subclasses[t](easing, start, end, param_s, param_e)
         elif t == "C":                                      # subclass expecting 3 values
             if len(start_params) == 3 and len(end_params) == 3:
