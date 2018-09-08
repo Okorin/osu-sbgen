@@ -144,15 +144,14 @@ class Storyboard:
         """
         with open(self.song_folder + self.osb_file_name, 'w', encoding='utf8') as file:
             file.write("[Events]\n")
+            # render all sprites
+            for sprite in self.sprites:
+                file.write(sprite.render())
             # render all effects
             for effect in self.effects:
                 spr = effect.get_sprites()
                 for sprite in spr:
                     file.write(sprite.render())
-
-            # render all sprites
-            for sprite in self.sprites:
-                file.write(sprite.render())
 
     def append_effect(self, effect):
         effect.apply()

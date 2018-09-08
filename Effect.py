@@ -6,7 +6,7 @@ from random import randint
 class Effect:
 
     def __init__(self, command_factory, start_time, end_time):
-        self.command_factory = command_factory
+        self.cf = command_factory
         self.start_time = Command.milliseconds(start_time)
         self.end_time = Command.milliseconds(end_time)
         self.sprites = list()
